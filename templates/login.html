@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Login - ListRefiner</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <style>
+    :root{
+      --brand:#0b4a63;           /* primary */
+      --brand-2:#0072ce;         /* accent */
+      --ink:#1f2937;             /* body text */
+      --muted:#6b7280;           /* secondary text */
+      --bg:#f7fafc;              /* page bg */
+      --card:#ffffff;            /* cards */
+      --line:#e5e7eb;            /* borders */
+      --focus:#ffb54b;           /* focus ring */
+      --success:#10b981;
+    }
+
+    /* Base */
+    html,body{height:100%}
+    body{
+      margin:0;
+      font-family:system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;
+      background:var(--bg);
+      color:var(--ink);
+      -webkit-font-smoothing:antialiased;
+      -moz-osx-font-smoothing:grayscale;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+    }
+    img{max-width:100%;height:auto;display:block}
+    a{color:var(--brand-2);text-decoration:none}
+    a:hover{text-decoration:underline}
+    h1,h2,h3{color:#003366;margin:0 0 .5rem}
+    p{margin:.5rem 0}
+
+    .login-container {
+      background: var(--card);
+      padding: 40px;
+      border-radius: 8px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+      max-width: 400px;
+      width: 100%;
+      text-align: center;
+    }
+    .login-container h1 { margin-bottom: 20px; }
+    .login-container form { margin-top: 20px; }
+    input[type="email"] {
+      width: 100%;
+      padding: 12px;
+      border: 1px solid var(--line);
+      border-radius: 4px;
+      margin: 10px 0;
+      font-size: 16px;
+    }
+    input[type="submit"] {
+      background-color: var(--brand-2);
+      color: white;
+      padding: 12px 20px;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      font-weight: 700;
+      font-size: 16px;
+      width: 100%;
+    }
+    input[type="submit"]:hover { background-color: #0056b3; }
+    input[type="submit"]:focus { outline: 3px solid var(--focus); outline-offset: 2px; }
+    .flash-message {
+      background: #fff3cd;
+      border: 1px solid #ffeaa7;
+      padding: 10px;
+      border-radius: 4px;
+      color: #856404;
+      margin-bottom: 20px;
+    }
+  </style>
+</head>
+<body>
+  <div class="login-container">
+    <img src="https://pricing.reachengine.io/images/transaction/n-logo.png" alt="ReachEngine" style="height: 50px; margin-bottom: 20px;">
+    <h1>ListRefiner</h1>
+    <p>Enter your email to access the tools.</p>
+
+    {% with messages = get_flashed_messages() %}
+    {% if messages %}
+      <div class="flash-message">
+        {% for message in messages %}
+          <p>{{ message }}</p>
+        {% endfor %}
+      </div>
+    {% endif %}
+    {% endwith %}
+
+    <form action="/login" method="POST">
+      <label for="email">Email:</label>
+      <input type="email" name="email" required placeholder="Enter your email@domain">
+      <input type="submit" value="Login">
+    </form>
+  </div>
+</body>
+</html>

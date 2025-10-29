@@ -1,0 +1,427 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Email Sheet Merger - List Refiner</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <style>
+    :root{
+      --brand:#0b4a63;           /* primary */
+      --brand-2:#0072ce;         /* accent */
+      --ink:#1f2937;             /* body text */
+      --muted:#6b7280;           /* secondary text */
+      --bg:#f7fafc;              /* page bg */
+      --card:#ffffff;            /* cards */
+      --line:#e5e7eb;            /* borders */
+      --focus:#ffb54b;           /* focus ring */
+      --success:#10b981;
+    }
+
+    /* Base */
+    html,body{height:100%}
+    body{
+      margin:0;
+      font-family:system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;
+      background:var(--bg);
+      color:var(--ink);
+      -webkit-font-smoothing:antialiased;
+      -moz-osx-font-smoothing:grayscale;
+    }
+    img{max-width:100%;height:auto;display:block}
+    a{color:var(--brand-2);text-decoration:none}
+    a:hover{text-decoration:underline}
+    h1,h2,h3{color:#003366;margin:0 0 .5rem}
+    p{margin:.5rem 0}
+    .container{max-width:1100px;margin:0 auto;padding:0 20px}
+
+    /* Header */
+    .site-header{
+      background:#fff;
+      border-bottom:1px solid var(--line);
+      position:sticky;top:0;z-index:20;
+    }
+    .brand-row{display:flex;align-items:center;gap:14px;padding:14px 0}
+    .brand-logo{height:40px;width:auto}
+    .brand-name{font-weight:700;font-size:1.1rem;color:#0b2530;letter-spacing:.2px}
+    .brand-tag{font-size:.85rem;color:var(--muted)}
+
+    /* Hero */
+    .hero{
+      background:linear-gradient(180deg,#ffffff 0%, #f3f8fc 100%);
+      border-bottom:1px solid var(--line);
+    }
+    .hero-inner{
+      display:grid;grid-template-columns:1.1fr .9fr;gap:28px;align-items:center;
+      padding:40px 0;
+    }
+    .eyebrow{color:var(--brand-2);font-weight:700;font-size:.85rem;letter-spacing:.08em;text-transform:uppercase}
+    .hero h1{font-size:clamp(1.6rem, 2.4vw, 2.2rem);line-height:1.2;color:#003366;margin:.25rem 0 .75rem}
+    .sub{font-size:1.05rem;color:var(--muted);max-width:48ch}
+    .hero-card{
+      background:#fff;border:1px solid var(--line);border-radius:14px;padding:18px;
+      box-shadow:0 6px 24px rgba(0,0,0,.06)
+    }
+    .hero-art{
+      border-radius:12px;border:1px solid var(--line);
+      box-shadow:0 8px 22px rgba(0,0,0,.06)
+    }
+
+    /* Features */
+    .features{padding:34px 0}
+    .feature-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:18px}
+    .feature{
+      background:var(--card);border:1px solid var(--line);border-radius:12px;padding:18px;
+    }
+    .feature h3{font-size:1.05rem;margin-bottom:.35rem}
+    .kicker{display:inline-block;background:#e6f0ff;color:#003366;border-radius:999px;padding:.25rem .6rem;font-size:.78rem;font-weight:700;margin-bottom:10px}
+
+    /* How it Works */
+    .steps{padding:8px 0 26px}
+    .step-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:18px}
+    .step{background:#fff;border:1px solid var(--line);border-radius:12px;padding:18px}
+    .step-num{
+      width:32px;height:32px;border-radius:50%;
+      background:#003366;color:#fff;display:flex;align-items:center;justify-content:center;
+      font-weight:700;margin-bottom:10px
+    }
+
+    /* Uploader card */
+    .uploader{
+      padding:28px 0 36px
+    }
+    .card{
+      background:#fff;border:1px solid var(--line);border-radius:14px;padding:22px;
+      box-shadow:0 8px 24px rgba(0,0,0,.06);
+      max-width:720px;margin:0 auto;
+    }
+    .upload-wrap{display:grid;grid-template-columns:1fr;gap:18px}
+    .dropzone{
+      border:2px dashed #bcd2e5;border-radius:12px;background:#f8fbff;
+      padding:22px;text-align:center;transition:all .2s ease-in-out
+    }
+    .dropzone.dragover{background:#eef6ff;border-color:#7fb7f0}
+    .dropzone strong{color:#003366}
+    .input-row{
+      display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:center
+    }
+    input[type="file"]{
+      padding:10px;background:#fff;border:1px solid var(--line);border-radius:8px;max-width:360px;width:100%;
+    }
+    input[type="text"]{
+      padding:10px;background:#fff;border:1px solid var(--line);border-radius:8px;max-width:360px;width:100%;
+    }
+    input[type="submit"]{
+      background-color:#B8773A;color:#fff;border:none;padding:12px 18px;border-radius:8px;
+      cursor:pointer;font-size:1rem;font-weight:700;letter-spacing:.2px;
+      box-shadow:0 6px 16px rgba(184,119,58,.25);
+    }
+    input[type="submit"]:hover{filter:brightness(.97)}
+    input[type="submit"]:focus{outline:3px solid var(--focus);outline-offset:2px}
+
+    .hint{font-size:.9rem;color:var(--muted)}
+    .note{font-size:.85rem;color:#374151;background:#f9fafb;border:1px dashed #d1d5db;border-radius:10px;padding:10px;margin-top:10px}
+
+    /* Results (placeholder table styling) */
+    table{border-collapse:collapse;width:100%;margin-top:16px}
+    table,th,td{border:1px solid #e5e7eb}
+    th,td{padding:10px;text-align:left}
+    th{background:#e6f0ff;color:#003366}
+
+    /* FAQ */
+    .faq{padding:10px 0 40px}
+    details{
+      background:#fff;border:1px solid var(--line);border-radius:12px;padding:14px;margin:8px 0
+    }
+    summary{cursor:pointer;font-weight:700}
+    summary:focus{outline:3px solid var(--focus);outline-offset:4px}
+
+    /* Footer */
+    .site-footer{
+      border-top:1px solid var(--line);background:#fff;color:var(--muted);font-size:.9rem
+    }
+    .foot-row{display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:space-between;padding:14px 0}
+    .foot-links a{color:var(--muted);margin-right:12px}
+    .foot-links a:hover{color:#003366}
+
+    /* Chatbot */
+    .chatbot-btn{
+      position:fixed;bottom:20px;right:20px;width:60px;height:60px;border-radius:50%;
+      background:#0072ce;color:#fff;border:none;cursor:pointer;z-index:1000;
+      box-shadow:0 4px 12px rgba(0,0,0,.2);font-size:24px;display:flex;align-items:center;justify-content:center;
+    }
+    .chatbot-btn:hover{background:#0056b3}
+    .chatbot-modal{
+      position:fixed;bottom:90px;right:20px;width:300px;max-height:500px;background:#fff;border:1px solid var(--line);
+      border-radius:12px;box-shadow:0 8px 24px rgba(0,0,0,.15);z-index:1001;display:none;
+    }
+    .chatbot-header{
+      background:#0072ce;color:#fff;padding:10px;border-radius:12px 12px 0 0;font-weight:700;
+    }
+    .chatbot-body{
+      padding:10px;max-height:350px;overflow-y:auto;
+    }
+    .chatbot-message{
+      margin-bottom:10px;padding:8px;background:#f7fafc;border-radius:8px;
+    }
+    .chatbot-message.user{
+      background:#0072ce;color:#fff;text-align:right;
+    }
+    .chatbot-input-area{
+      display:flex;gap:5px;padding:10px;border-top:1px solid var(--line);
+    }
+    .chatbot-input{
+      flex:1;padding:8px;border:1px solid var(--line);border-radius:4px;
+    }
+    .chatbot-send{
+      padding:8px 12px;background:#0072ce;color:#fff;border:none;border-radius:4px;cursor:pointer;
+    }
+    .chatbot-send:hover{background:#0056b3}
+    .chatbot-close{
+      position:absolute;top:10px;right:10px;background:none;border:none;color:#fff;cursor:pointer;font-size:18px;
+    }
+
+    /* Responsive */
+    @media (max-width:900px){
+      .hero-inner{grid-template-columns:1fr;gap:16px}
+      .feature-grid,.step-grid{grid-template-columns:1fr 1fr}
+    }
+    @media (max-width:620px){
+      .feature-grid,.step-grid{grid-template-columns:1fr}
+      .brand-tag{display:block}
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Header -->
+  <header class="site-header">
+    <div class="container">
+      <div class="brand-row" role="banner" aria-label="List Refiner" style="position: relative;">
+
+        <!-- Hamburger menu button -->
+        <button id="hamburgerBtn" aria-label="Open menu" aria-expanded="false" aria-controls="menu" style="background:none; border:none; cursor:pointer; padding:0; margin-right: 16px;">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--brand-2)" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="3" y1="6" x2="21" y2="6"></line>
+            <line x1="3" y1="12" x2="21" y2="12"></line>
+            <line x1="3" y1="18" x2="21" y2="18"></line>
+          </svg>
+        </button>
+
+        <img src="https://pricing.reachengine.io/images/transaction/n-logo.png"
+             alt="ReachEngine" class="brand-logo">
+        <div>
+          <div class="brand-name">ListRefiner</div>
+          <div class="brand-tag">Clean &amp; combine email lists from Excel in seconds</div>
+        </div>
+
+        <!-- Dropdown menu -->
+        <nav id="menu" role="navigation" aria-label="Tool navigation" style="display:none; position: absolute; top: 56px; left: 0; background: white; border: 1px solid var(--line); border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); z-index: 30; min-width: 200px;">
+          <ul style="list-style:none; margin:0; padding: 8px 0;">
+            <li><a href="index.html" style="display:block; padding: 8px 16px; color: var(--brand-2); text-decoration:none;">Home</a></li>
+            <li><a href="combiner.html" style="display:block; padding: 8px 16px; color: var(--brand-2); text-decoration:none;">Excel & CSV Combiner & Deduper</a></li>
+            <li><a href="matcher.html" style="display:block; padding: 8px 16px; color: var(--brand-2); text-decoration:none;">Email Matcher</a></li>
+            <li><a href="merger.html" style="display:block; padding: 8px 16px; color: var(--brand-2); text-decoration:none;">Email Sheet Merger</a></li>
+            <li><a href="splitter.html" style="display:block; padding: 8px 16px; color: var(--brand-2); text-decoration:none;">Industry Splitter</a></li>
+            <li><a href="cleaner.html" style="display:block; padding: 8px 16px; color: var(--brand-2); text-decoration:none;">Email Cleaner</a></li>
+            <li><a href="analysis.html" style="display:block; padding: 8px 16px; color: var(--brand-2); text-decoration:none;">Data Analysis Dashboard</a></li>
+            <li><a href="scraper.html" style="display:block; padding: 8px 16px; color: var(--brand-2); text-decoration:none;">Web Scraper</a></li>
+            <li><a href="domain_validator.html" style="display:block; padding: 8px 16px; color: var(--brand-2); text-decoration:none;">Domain Validator</a></li>
+            <li><a href="/logout" style="display:block; padding: 8px 16px; color: var(--brand-2); text-decoration:none;">Logout</a></li>
+          </ul>
+        </nav>
+      </div>
+    </div>
+  </header>
+
+  <!-- Hero -->
+  <section class="hero">
+    <div class="container hero-inner">
+      <div>
+        <div class="hero-card">
+          <div class="eyebrow">Email Sheet Merger</div>
+          <h1>Merge emails from source to target sheet</h1>
+          <p class="sub">
+            What it does: Merges Emails from a source sheet to a target sheet where emails match.
+          </p>
+        </div>
+      </div>
+      <div>
+        <img class="hero-art" src="https://pro.reachengine.io/frontend/assets/files/customer/fe894l5mtydbd/hero-image-1.png"
+             alt="Spreadsheet refinement illustration">
+      </div>
+    </div>
+  </section>
+
+  <!-- Features -->
+  <section class="features">
+    <div class="container">
+      <span class="kicker">Why use Email Sheet Merger</span>
+      <div class="feature-grid">
+        <div class="feature">
+          <h3>Email Matching</h3>
+          <p>Precisely matches emails between source and target sheets for accurate merging.</p>
+        </div>
+        <div class="feature">
+          <h3>Data Enrichment</h3>
+          <p>Enrich your contact data by combining information from different lists.</p>
+        </div>
+        <div class="feature">
+          <h3>Flexible Sheets</h3>
+          <p>Specify any source and target sheets within your Excel file.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- How it works -->
+  <section class="steps">
+    <div class="container">
+      <span class="kicker">How it works</span>
+      <div class="step-grid">
+        <div class="step">
+          <div class="step-num">1</div>
+          <h3>Upload your file</h3>
+          <p>Select an <strong>.xlsx</strong> file with multiple sheets.</p>
+        </div>
+        <div class="step">
+          <div class="step-num">2</div>
+          <h3>Specify sheets</h3>
+          <p>Enter the source and target sheet names for merging.</p>
+        </div>
+        <div class="step">
+          <div class="step-num">3</div>
+          <h3>Download merged file</h3>
+          <p>Get the enriched Excel file with merged data.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Uploader -->
+  <section class="uploader">
+    <div class="container">
+      <div class="card">
+        <form action="/merge_names" method="post" enctype="multipart/form-data">
+          <div class="upload-wrap">
+            <input type="file" name="file" accept=".xlsx" required>
+            <input type="text" name="source_sheet" placeholder="Source sheet name" required>
+            <input type="text" name="target_sheet" placeholder="Target sheet name" required>
+            <input type="submit" value="Merge Names">
+          </div>
+        </form>
+        <p class="hint">Upload an .xlsx file and specify the sheet names to merge data based on matching emails.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer class="site-footer">
+    <div class="container foot-row">
+      <div>© <span id="year"></span> List Refiner by ReachEngine</div>
+      <div class="foot-links">
+        <a href="#">Privacy</a>
+        <a href="#">Terms</a>
+        <a href="#">Support</a>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Chatbot -->
+  <button class="chatbot-btn" id="chatbotBtn">💬</button>
+  <div class="chatbot-modal" id="chatbotModal">
+    <div class="chatbot-header">
+      Help Assistant
+      <button class="chatbot-close" id="chatbotClose">&times;</button>
+    </div>
+    <div class="chatbot-body" id="chatbotBody">
+      <div class="chatbot-message">Hello! I'm here to help you with the Email Sheet Merger. Ask me anything about the process!</div>
+    </div>
+    <div class="chatbot-input-area">
+      <input type="text" class="chatbot-input" id="chatbotInput" placeholder="Type your question...">
+      <button class="chatbot-send" id="chatbotSend">Send</button>
+    </div>
+  </div>
+
+  <!-- Lightweight UX script -->
+  <script>
+    // Year
+    document.getElementById('year').textContent = new Date().getFullYear();
+
+    // Hamburger menu toggle
+    document.getElementById('hamburgerBtn').addEventListener('click', function() {
+      const menu = document.getElementById('menu');
+      const expanded = this.getAttribute('aria-expanded') === 'true';
+      this.setAttribute('aria-expanded', !expanded);
+      menu.style.display = expanded ? 'none' : 'block';
+    });
+
+    // Close menu when clicking outside
+    document.addEventListener('click', function(event) {
+      const menu = document.getElementById('menu');
+      const btn = document.getElementById('hamburgerBtn');
+      if (!menu.contains(event.target) && !btn.contains(event.target)) {
+        menu.style.display = 'none';
+        btn.setAttribute('aria-expanded', 'false');
+      }
+    });
+
+    // Chatbot toggle
+    document.getElementById('chatbotBtn').addEventListener('click', function() {
+      const modal = document.getElementById('chatbotModal');
+      modal.style.display = modal.style.display === 'block' ? 'none' : 'block';
+    });
+
+    // Close chatbot
+    document.getElementById('chatbotClose').addEventListener('click', function() {
+      document.getElementById('chatbotModal').style.display = 'none';
+    });
+
+    // Chatbot functionality
+    const chatbotBody = document.getElementById('chatbotBody');
+    const chatbotInput = document.getElementById('chatbotInput');
+    const chatbotSend = document.getElementById('chatbotSend');
+
+    function addMessage(text, isUser = false) {
+      const messageDiv = document.createElement('div');
+      messageDiv.className = 'chatbot-message' + (isUser ? ' user' : '');
+      messageDiv.textContent = text;
+      chatbotBody.appendChild(messageDiv);
+      chatbotBody.scrollTop = chatbotBody.scrollHeight;
+    }
+
+    function getResponse(question) {
+      const q = question.toLowerCase();
+      if (q.includes('upload') || q.includes('file')) {
+        return "To upload your file: Select an .xlsx file that contains multiple sheets. This file should have the data you want to merge.";
+      } else if (q.includes('sheet') || q.includes('specify')) {
+        return "Specify sheets: Enter the name of the source sheet (where the additional data comes from) and the target sheet (where you want to add the data).";
+      } else if (q.includes('download') || q.includes('merge')) {
+        return "Download merged file: Click 'Merge Names' to process the file. The system will match emails between the sheets and merge the data. Download the enriched Excel file.";
+      } else if (q.includes('email') || q.includes('match')) {
+        return "Email matching: Ensure both sheets have an email column for matching. The merger adds data from source to target where emails match. If no match is found, the row remains unchanged.";
+      } else if (q.includes('tip') || q.includes('help')) {
+        return "Tips: Ensure both sheets have an email column for matching. The merger adds data from source to target where emails match. If no match is found, the row remains unchanged.";
+      } else {
+        return "I'm here to help with the Email Sheet Merger. You can ask about uploading files, specifying sheets, downloading merged files, or email matching.";
+      }
+    }
+
+    chatbotSend.addEventListener('click', function() {
+      const question = chatbotInput.value.trim();
+      if (question) {
+        addMessage(question, true);
+        const response = getResponse(question);
+        setTimeout(() => addMessage(response), 500);
+        chatbotInput.value = '';
+      }
+    });
+
+    chatbotInput.addEventListener('keypress', function(e) {
+      if (e.key === 'Enter') {
+        chatbotSend.click();
+      }
+    });
+  </script>
+</body>
+</html>

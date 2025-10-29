@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Web Scraper — List Refiner</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <style>
+    :root{
+      --brand:#0b4a63;           /* primary */
+      --brand-2:#0072ce;         /* accent */
+      --ink:#1f2937;             /* body text */
+      --muted:#6b7280;           /* secondary text */
+      --bg:#f7fafc;              /* page bg */
+      --card:#ffffff;            /* cards */
+      --line:#e5e7eb;            /* borders */
+      --focus:#ffb54b;           /* focus ring */
+      --success:#10b981;
+    }
+
+    /* Base */
+    html,body{height:100%}
+    body{
+      margin:0;
+      font-family:system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;
+      background:var(--bg);
+      color:var(--ink);
+      -webkit-font-smoothing:antialiased;
+      -moz-osx-font-smoothing:grayscale;
+    }
+    img{max-width:100%;height:auto;display:block}
+    a{color:var(--brand-2);text-decoration:none}
+    a:hover{text-decoration:underline}
+    h1,h2,h3{color:#003366;margin:0 0 .5rem}
+    p{margin:.5rem 0}
+
+    /* Shared container — hero and header align the same */
+    .container{max-width:1100px;margin:0 auto;padding:0 20px}
+
+    /* Header */
+    .site-header{
+      background:#fff;
+      border-bottom:1px solid var(--line);
+      position:sticky;top:0;z-index:20;
+    }
+    .site-header .container{padding-left:20px;padding-right:20px}
+    .brand-row{
+      display:flex;align-items:center;gap:14px;padding:14px 0;
+      position:relative;
+      justify-content:flex-start;
+    }
+    .brand-logo{height:40px;width:auto}
+    .brand-name{font-weight:700;font-size:1.1rem;color:#0b2530;letter-spacing:.2px}
+    .brand-tag{font-size:.85rem;color:var(--muted)}
+    #hamburgerBtn{
+      background:none;border:none;cursor:pointer;padding:0;margin-right:16px;
+      display:inline-flex;align-items:center;justify-content:center
+    }
+    #menu{
+      display:none; position:absolute; top:56px; left:0;
+      background:#fff; border:1px solid var(--line); border-radius:8px;
+      box-shadow:0 4px 12px rgba(0,0,0,0.1); z-index:30; min-width:200px;
+    }
+    #menu ul{list-style:none;margin:0;padding:8px 0}
+    #menu a{display:block;padding:8px 16px;color:var(--brand-2);text-decoration:none}
+
+    /* Hero */
+    .hero{
+      background:linear-gradient(180deg,#ffffff 0%, #f3f8fc 100%);
+      border-bottom:1px solid var(--line);
+    }
+    .hero-inner{
+      display:grid;grid-template-columns:1fr;gap:28px;align-items:center;
+      padding:40px 0;
+    }
+    .eyebrow{color:var(--brand-2);font-weight:700;font-size:.85rem;letter-spacing:.08em;text-transform:uppercase}
+    .hero h1{font-size:clamp(1.6rem, 2.4vw, 2.2rem);line-height:1.2;color:#003366;margin:.25rem 0 .75rem}
+    .sub{font-size:1.05rem;color:var(--muted);max-width:48ch}
+    .hero-card{
+      background:#fff;border:1px solid var(--line);border-radius:14px;padding:18px;
+      box-shadow:0 6px 24px rgba(0,0,0,.06)
+    }
+    .hero-art{
+      border-radius:12px;border:1px solid var(--line);
+      box-shadow:0 8px 22px rgba(0,0,0,.06)
+    }
+
+    /* Scraper Form */
+    .scraper-form{padding:28px 0 36px}
+    .card{
+      background:#fff;border:1px solid var(--line);border-radius:14px;padding:22px;
+      box-shadow:0 8px 24px rgba(0,0,0,.06);
+      max-width:720px;margin:0 auto;
+    }
+    .form-group{margin-bottom:1rem}
+    label{font-weight:600;color:var(--ink);display:block;margin-bottom:0.5rem}
+    input[type="url"], input[type="text"], select{
+      width:100%;padding:10px;border:1px solid var(--line);border-radius:8px;
+      font-size:1rem;box-sizing:border-box;
+    }
+    input[type="submit"]{
+      background-color:#B8773A;color:#fff;border:none;padding:12px 18px;border-radius:8px;
+      cursor:pointer;font-size:1rem;font-weight:700;letter-spacing:.2px;
+      box-shadow:0 6px 16px rgba(184,119,58,.25);width:100%;
+    }
+    input[type="submit"]:hover{filter:brightness(.97)}
+    input[type="submit"]:focus{outline:3px solid var(--focus);outline-offset:2px}
+
+    /* Results */
+    .results{margin-top:2rem;padding:1rem;border:1px solid var(--line);border-radius:8px;background:#f8fafc}
+    .results pre{white-space:pre-wrap;word-break:break-all;font-family:monospace;background:#fff;padding:1rem;border-radius:4px;overflow:auto;max-height:400px}
+    .download-btn{display:inline-block;background-color:#B8773A;color:#fff;text-decoration:none;padding:12px 18px;border-radius:8px;font-weight:700;margin-top:1rem}
+    .download-btn:hover{filter:brightness(.97)}
+
+    /* Flash Messages */
+    .flash-messages{padding:20px 0;background:#fff3cd;border-bottom:1px solid #ffeaa7;}
+    .flash-messages p{color:#856404;margin:0;font-weight:500;}
+
+    /* Responsive */
+    @media (max-width:900px){
+      .hero-inner{grid-template-columns:1fr;gap:16px}
+    }
+    @media (max-width:620px){
+      .brand-tag{display:block}
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Header -->
+  <header class="site-header">
+    <div class="container">
+      <div class="brand-row" role="banner" aria-label="List Refiner">
+        <button id="hamburgerBtn" aria-label="Open menu" aria-expanded="false" aria-controls="menu">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--brand-2)" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <line x1="3" y1="6" x2="21" y2="6"></line>
+            <line x1="3" y1="12" x2="21" y2="12"></line>
+            <line x1="3" y1="18" x2="21" y2="18"></line>
+          </svg>
+        </button>
+
+        <img src="https://pricing.reachengine.io/images/transaction/n-logo.png"
+             alt="ReachEngine" class="brand-logo">
+        <div style="display:flex;flex-direction:column;justify-content:center">
+          <div class="brand-name">ListRefiner</div>
+          <div class="brand-tag">Web Scraper Tool</div>
+        </div>
+
+        <nav id="menu" role="navigation" aria-label="Tool navigation">
+          <ul>
+            <li><a href="index.html">Home</a></li>
+            <li><a href="combiner.html">Excel Combiner &amp; Deduper</a></li>
+            <li><a href="matcher.html">Email Matcher</a></li>
+            <li><a href="merger.html">Email Sheet Merger</a></li>
+            <li><a href="splitter.html">Industry Splitter</a></li>
+            <li><a href="cleaner.html">Email Cleaner</a></li>
+            <li><a href="analysis.html">Data Analysis Dashboard</a></li>
+            <li><a href="verifier.html">Email Verifier</a></li>
+            <li><a href="domain_validator.html">Domain Validator</a></li>
+            <li><a href="/logout">Logout</a></li>
+          </ul>
+        </nav>
+      </div>
+    </div>
+  </header>
+
+  <!-- Hero -->
+  <section class="hero">
+    <div class="container hero-inner">
+      <div>
+        <div class="hero-card">
+          <div class="eyebrow">Web Scraper</div>
+          <h1>Extract data from websites easily</h1>
+          <p class="sub">
+            Enter a URL to scrape specific data using selectors, or provide an industry name and optional location to extract LinkedIn profiles of people including top positions, emails, company addresses, and phone numbers. If no selector is provided for URL scraping, comprehensive data including emails, names, LinkedIn profiles, phone numbers, and social media links will be extracted. Supports CSS selectors and attributes.
+          </p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Flash Messages -->
+  {% with messages = get_flashed_messages() %}
+    {% if messages %}
+      <section class="flash-messages">
+        <div class="container">
+          {% for message in messages %}
+            <p>{{ message }}</p>
+          {% endfor %}
+        </div>
+      </section>
+    {% endif %}
+  {% endwith %}
+
+  <!-- Scraper Form -->
+  <section class="scraper-form">
+    <div class="container">
+      <div class="card">
+        <form action="/scrape" method="POST">
+          <div class="form-group">
+            <label for="url">URL (optional)</label>
+            <input type="url" id="url" name="url" placeholder="https://example.com" />
+          </div>
+          <div class="form-group">
+            <label for="industry">Industry (optional)</label>
+            <input type="text" id="industry" name="industry" placeholder="e.g., Technology, Healthcare, Finance" />
+          </div>
+          <div class="form-group">
+            <label for="location">Location (optional)</label>
+            <input type="text" id="location" name="location" placeholder="e.g., United States, India, London" />
+          </div>
+          <div class="form-group">
+            <label for="scrape_type">Scrape Type</label>
+            <select id="scrape_type" name="scrape_type">
+              <option value="static">Static (BeautifulSoup)</option>
+              <option value="dynamic">Dynamic (Selenium)</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="selector">CSS Selector (optional)</label>
+            <input type="text" id="selector" name="selector" placeholder="e.g., .email, a[href] (leave blank for comprehensive scrape)" />
+          </div>
+          <div class="form-group">
+            <label for="attribute">Attribute (optional)</label>
+            <input type="text" id="attribute" name="attribute" placeholder="e.g., href, text" />
+          </div>
+          <input type="submit" value="Scrape Data" />
+        </form>
+      </div>
+    </div>
+  </section>
+
+  <!-- Results -->
+  {% if download_file %}
+  <section class="results">
+    <div class="container">
+      <div class="card">
+        <h2>Scraping Completed Successfully!</h2>
+        <p>Your scraped data has been saved to a CSV file. Click the button below to download it.</p>
+        <a href="{{ url_for('download_file', filename=download_file) }}" class="download-btn">Download Scraped Data (CSV)</a>
+      </div>
+    </div>
+  </section>
+  {% endif %}
+
+  <!-- Footer -->
+  <footer class="site-footer">
+    <div class="container foot-row">
+      <div>© <span id="year"></span> List Refiner by ReachEngine</div>
+      <div class="foot-links">
+        <a href="#" id="privacyLink">Privacy</a>
+        <a href="#" id="termsLink">Terms</a>
+        <a href="#" id="supportLink">Support</a>
+      </div>
+    </div>
+  </footer>
+
+  <script>
+    // Year
+    document.getElementById('year').textContent = new Date().getFullYear();
+
+    // Hamburger menu toggle
+    const hamburgerBtn = document.getElementById('hamburgerBtn');
+    const menu = document.getElementById('menu');
+
+    hamburgerBtn.addEventListener('click', function(e) {
+      e.stopPropagation();
+      const expanded = this.getAttribute('aria-expanded') === 'true';
+      this.setAttribute('aria-expanded', String(!expanded));
+      menu.style.display = expanded ? 'none' : 'block';
+    });
+
+    document.addEventListener('click', function(event) {
+      if (!menu.contains(event.target) && !hamburgerBtn.contains(event.target)) {
+        menu.style.display = 'none';
+        hamburgerBtn.setAttribute('aria-expanded', 'false');
+      }
+    });
+
+    // Footer links
+    const developerMessage = "This is developed by Osho Rajnesh and my LinkedIn id https://in.linkedin.com/in/osho-rajnesh-mishra-96b603214";
+
+    document.getElementById('privacyLink').addEventListener('click', function(e) {
+      e.preventDefault();
+      window.open('https://in.linkedin.com/in/osho-rajnesh-mishra-96b603214', '_blank');
+    });
+    document.getElementById('termsLink').addEventListener('click', function(e) {
+      e.preventDefault();
+      window.open('https://in.linkedin.com/in/osho-rajnesh-mishra-96b603214', '_blank');
+    });
+    document.getElementById('supportLink').addEventListener('click', function(e) {
+      e.preventDefault();
+      window.open('https://in.linkedin.com/in/osho-rajnesh-mishra-96b603214', '_blank');
+    });
+  </script>
+</body>
+</html>
